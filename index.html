@@ -12,8 +12,12 @@
     margin: 0;
 }
 
-body { margin:0; font-family: Arial; }
+body { 
+    margin:0; 
+    font-family: Arial; 
+}
 
+/* PÁGINA */
 .page {
     width: 210mm;
     height: 297mm;
@@ -26,12 +30,14 @@ body { margin:0; font-family: Arial; }
     page-break-after: always;
 }
 
+/* ETIQUETA */
 .etiqueta {
     border: 2px solid black;
     display: flex;
     flex-direction: column;
 }
 
+/* TOPO */
 .topo {
     background: #ffe600;
     text-align: center;
@@ -40,18 +46,22 @@ body { margin:0; font-family: Arial; }
 
 .topo img { height: 30px; }
 
+/* TITULO */
 .titulo {
     background: #eee;
     text-align: center;
     font-weight: bold;
 }
 
+/* NOME */
 .nome {
     text-align: center;
     font-size: 20px;
     padding: 10px;
+    font-weight: bold;
 }
 
+/* QR */
 .qr {
     display: flex;
     justify-content: center;
@@ -59,13 +69,27 @@ body { margin:0; font-family: Arial; }
     flex-grow: 1;
 }
 
+/* FOOTER */
 .footer {
     background: #003a8f;
     text-align: center;
     padding: 5px;
+    color: white;
+    font-size: 12px;
 }
 
-.footer img { height: 18px; }
+.footer img { 
+    height: 18px; 
+    display: block;
+    margin: 0 auto 3px;
+}
+
+/* TELA SEM DADOS */
+.sem-dados {
+    text-align: center;
+    margin-top: 100px;
+    font-size: 18px;
+}
 </style>
 </head>
 
@@ -81,7 +105,22 @@ function getDados() {
 
 function gerar() {
     let dados = getDados();
-    if (!dados) return;
+
+    /* 🔥 CORREÇÃO: evita tela branca */
+    if (!dados) {
+        document.body.innerHTML = `
+            <div class="sem-dados">
+                <h2>Nenhum dado recebido</h2>
+                <p>Use o AppSheet para gerar etiquetas automaticamente.</p>
+                <br>
+                <small>
+                    Equipe Inventario - Kuehne Nagel SAL1<br>
+                    Desenvolvido por Luiz Henrique
+                </small>
+            </div>
+        `;
+        throw new Error("Sem dados");
+    }
 
     let lista = dados.split(",");
     let container = document.getElementById("paginas");
@@ -122,6 +161,8 @@ function gerar() {
 
             <div class="footer">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/0/0c/Kuehne_%2B_Nagel_logo.svg">
+                Equipe Inventario - Kuehne Nagel SAL1<br>
+                Desenvolvido por Luiz Henrique
             </div>
         `;
 
@@ -136,6 +177,7 @@ function gerar() {
         count++;
     });
 
+    /* 🔥 auto abrir impressão */
     setTimeout(() => window.print(), 500);
 }
 
