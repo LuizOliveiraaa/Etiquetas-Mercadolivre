@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Etiquetas</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+@page {
+    size: A4;
+    margin: 0;
+}
+
+body { margin:0; font-family: Arial; }
+
+.page {
+    width: 210mm;
+    height: 297mm;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 5mm;
+    padding: 10mm;
+    box-sizing: border-box;
+    page-break-after: always;
+}
+
+.etiqueta {
+    border: 2px solid black;
+    display: flex;
+    flex-direction: column;
+}
+
+.topo {
+    background: #ffe600;
+    text-align: center;
+    padding: 5px;
+}
+
+.topo img { height: 30px; }
+
+.titulo {
+    background: #eee;
+    text-align: center;
+    font-weight: bold;
+}
+
+.nome {
+    text-align: center;
+    font-size: 20px;
+    padding: 10px;
+}
+
+.qr {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.footer {
+    background: #003a8f;
+    text-align: center;
+    padding: 5px;
+}
+
+.footer img { height: 18px; }
+</style>
+</head>
+
+<body>
+
+<div id="paginas"></div>
+
+<script>
+function getDados() {
+    const url = new URL(window.location.href);
+    return url.searchParams.get("dados");
+}
+
+function gerar() {
+    let dados = getDados();
+    if (!dados) return;
+
+    let lista = dados.split(",");
+    let container = document.getElementById("paginas");
+
+    let page;
+    let count = 0;
+
+    lista.forEach((item, index) => {
+
+        let [numero, tipo] = item.split("-");
+        let comId = tipo === "com";
+
+        if (count % 4 === 0) {
+            page = document.createElement("div");
+            page.className = "page";
+            container.appendChild(page);
+        }
+
+        let texto = `G1_SAL${numero} ${comId ? "com ID" : "sem ID"}`;
+
+        let etiqueta = document.createElement("div");
+        etiqueta.className = "etiqueta";
+
+        etiqueta.innerHTML = `
+            <div class="topo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Mercado_Libre_logo.svg">
+            </div>
+
+            <div class="titulo">
+                PACOTES ${comId ? "COM ID" : "SEM ID"}
+            </div>
+
+            <div class="nome">
+                ${texto}
+            </div>
+
+            <div class="qr" id="qr${index}"></div>
+
+            <div class="footer">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0c/Kuehne_%2B_Nagel_logo.svg">
+            </div>
+        `;
+
+        page.appendChild(etiqueta);
+
+        new QRCode(document.getElementById(`qr${index}`), {
+            text: texto,
+            width: 130,
+            height: 130
+        });
+
+        count++;
+    });
+
+    setTimeout(() => window.print(), 500);
+}
+
+gerar();
+</script>
+
+</body>
+</html>
