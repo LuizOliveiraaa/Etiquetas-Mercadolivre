@@ -105,10 +105,11 @@ function getDados() {
 
 function gerar() {
     let dados = getDados();
+    let container = document.getElementById("paginas");
 
-    /* 🔥 CORREÇÃO: evita tela branca */
+    /* 🔥 CORREÇÃO DEFINITIVA */
     if (!dados) {
-        document.body.innerHTML = `
+        container.innerHTML = `
             <div class="sem-dados">
                 <h2>Nenhum dado recebido</h2>
                 <p>Use o AppSheet para gerar etiquetas automaticamente.</p>
@@ -119,11 +120,10 @@ function gerar() {
                 </small>
             </div>
         `;
-        throw new Error("Sem dados");
+        return; // 👈 IMPORTANTE (não quebra o site)
     }
 
     let lista = dados.split(",");
-    let container = document.getElementById("paginas");
 
     let page;
     let count = 0;
@@ -177,7 +177,6 @@ function gerar() {
         count++;
     });
 
-    /* 🔥 auto abrir impressão */
     setTimeout(() => window.print(), 500);
 }
 
