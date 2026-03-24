@@ -5,7 +5,8 @@
 <title>Etiquetas</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<<link rel="icon" type="image/png" href="https://luizoliveiraaa.github.io/Etiquetas-Mercadolivre/favicon.png">
+
+<link rel="icon" type="image/png" href="https://luizoliveiraaa.github.io/Etiquetas-Mercadolivre/favicon.png">
 
 <style>
 @page {
@@ -105,6 +106,66 @@ body {
 <div id="paginas"></div>
 
 <script>
+
+// 🔥 PADRÃO SEMID
+function formatarSemid(numero) {
+    numero = String(numero).replace("SEMID-", "").trim();
+
+    if (numero.length < 5) {
+        numero = numero.padStart(5, '0');
+    }
+
+    return `semid_sal1_${numero}`;
+}
+
+// 🔥 MODO ZPL
+function modoZPL(lista) {
+    const url = new URL(window.location.href);
+    const zpl = url.searchParams.get("zpl");
+
+    if (!zpl) return false;
+
+    let resultado = "";
+
+    lista.forEach(item => {
+
+        let numero = item.replace("SEMID-", "");
+        let codigo = formatarSemid(numero);
+
+        resultado += `
+^XA
+^PW800
+^LL600
+
+^CF0,35
+
+^FO50,30^FDSALVADOS - SAL1^FS
+
+^FO50,90^A0N,45,45^FD${codigo}^FS
+
+^FO50,160^BY3
+^BCN,140,Y,N,N
+^FD${codigo}^FS
+
+^FO50,330^A0N,30,30^FDID: ${codigo}^FS
+
+^FO550,350^BQN,2,5
+^FDLA,${codigo}^FS
+
+^XZ
+`;
+    });
+
+    document.body.innerHTML = `
+        <h2 style="font-family: Arial">Modo Zebra 🏷️</h2>
+        <p>Copie o código abaixo:</p>
+        <textarea style="width:100%;height:400px;">${resultado}</textarea>
+    `;
+
+    return true;
+}
+
+// 🔥 PARAMETROS
 function getParametros() {
     const url = new URL(window.location.href);
 
@@ -126,9 +187,13 @@ function getParametros() {
     return lista;
 }
 
+// 🔥 GERAR
 function gerar() {
     let lista = getParametros();
     let container = document.getElementById("paginas");
+
+    // 👉 MODO ZPL
+    if (modoZPL(lista)) return;
 
     if (!lista || lista.length === 0) {
         container.innerHTML = `
@@ -150,29 +215,13 @@ function gerar() {
 
     lista.forEach((item, index) => {
 
-        let numero, tipo, comId;
-
-        if (item.startsWith("SEMID")) {
-            numero = item;
-            tipo = "sem";
-            comId = false;
-        } else {
-            [numero, tipo] = item.split("-");
-            comId = tipo === "com";
-        }
+        let numero = item.replace("SEMID-", "");
+        let texto = formatarSemid(numero);
 
         if (count % 4 === 0) {
             page = document.createElement("div");
             page.className = "page";
             container.appendChild(page);
-        }
-
-        let texto;
-
-        if (item.startsWith("SEMID")) {
-            texto = numero;
-        } else {
-            texto = `G1_SAL${numero} ${comId ? "com ID" : "sem ID"}`;
         }
 
         let etiqueta = document.createElement("div");
@@ -184,7 +233,7 @@ function gerar() {
             </div>
 
             <div class="titulo">
-                ${item.startsWith("SEMID") ? "SEM ID" : `PACOTES ${comId ? "COM ID" : "SEM ID"}`}
+                SEM ID
             </div>
 
             <div class="nome">
