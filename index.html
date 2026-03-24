@@ -46,7 +46,9 @@ body {
 }
 
 .topo img { 
-    height: 50px;
+    height: 55px;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 /* TITULO */
@@ -85,9 +87,11 @@ body {
 }
 
 .footer img { 
-    height: 28px; 
+    height: 30px; 
     display: block;
     margin: 0 auto 5px;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 /* TELA SEM DADOS */
@@ -179,7 +183,7 @@ function gerar() {
 
         etiqueta.innerHTML = `
             <div class="topo">
-                <img src="https://media.discordapp.net/attachments/954076170444501082/1485521366122758264/OIP_1.webp">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Mercado_Libre_Logo.svg">
             </div>
 
             <div class="titulo">
@@ -193,7 +197,7 @@ function gerar() {
             <div class="qr" id="qr${index}"></div>
 
             <div class="footer">
-                <img src="https://media.discordapp.net/attachments/954076170444501082/1485521365640544336/OIP.webp">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Kuehne_%2B_Nagel_logo.svg/512px-Kuehne_%2B_Nagel_logo.svg.png">
                 Equipe Inventario - Kuehne Nagel SAL1<br>
                 Cada Pacote Importa!
             </div>
