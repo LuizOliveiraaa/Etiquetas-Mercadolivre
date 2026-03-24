@@ -99,17 +99,35 @@ body {
 <div id="paginas"></div>
 
 <script>
-function getDados() {
+function getParametros() {
     const url = new URL(window.location.href);
-    return url.searchParams.get("dados");
+
+    const dados = url.searchParams.get("dados");
+    const inicio = url.searchParams.get("inicio");
+    const fim = url.searchParams.get("fim");
+
+    let lista = [];
+
+    // 🔹 CASO 1: modo antigo (dados)
+    if (dados) {
+        lista = dados.split(",");
+    }
+
+    // 🔹 CASO 2: modo novo (intervalo SEMID)
+    else if (inicio && fim) {
+        for (let i = parseInt(inicio); i <= parseInt(fim); i++) {
+            lista.push("SEMID-" + i);
+        }
+    }
+
+    return lista;
 }
 
 function gerar() {
-    let dados = getDados();
+    let lista = getParametros();
     let container = document.getElementById("paginas");
 
-    /* 🔥 CORREÇÃO DEFINITIVA */
-    if (!dados) {
+    if (!lista || lista.length === 0) {
         container.innerHTML = `
             <div class="sem-dados">
                 <h2>Nenhum dado recebido</h2>
@@ -121,18 +139,27 @@ function gerar() {
                 </small>
             </div>
         `;
-        return; // 👈 IMPORTANTE (não quebra o site)
+        return;
     }
-
-    let lista = dados.split(",");
 
     let page;
     let count = 0;
 
     lista.forEach((item, index) => {
 
-        let [numero, tipo] = item.split("-");
-        let comId = tipo === "com";
+        let numero, tipo, comId;
+
+        // 🔹 SE FOR SEMID
+        if (item.startsWith("SEMID")) {
+            numero = item;
+            tipo = "sem";
+            comId = false;
+        } 
+        // 🔹 SE FOR PADRÃO ANTIGO
+        else {
+            [numero, tipo] = item.split("-");
+            comId = tipo === "com";
+        }
 
         if (count % 4 === 0) {
             page = document.createElement("div");
@@ -140,7 +167,14 @@ function gerar() {
             container.appendChild(page);
         }
 
-        let texto = `G1_SAL${numero} ${comId ? "com ID" : "sem ID"}`;
+        let texto;
+
+        // 🔹 TEXTO DIFERENTE PRA SEMID
+        if (item.startsWith("SEMID")) {
+            texto = numero;
+        } else {
+            texto = `G1_SAL${numero} ${comId ? "com ID" : "sem ID"}`;
+        }
 
         let etiqueta = document.createElement("div");
         etiqueta.className = "etiqueta";
@@ -151,7 +185,7 @@ function gerar() {
             </div>
 
             <div class="titulo">
-                PACOTES ${comId ? "COM ID" : "SEM ID"}
+                ${item.startsWith("SEMID") ? "SEM ID" : `PACOTES ${comId ? "COM ID" : "SEM ID"}`}
             </div>
 
             <div class="nome">
