@@ -23,12 +23,20 @@ body {
     width: 210mm;
     height: 297mm;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
     gap: 5mm;
     padding: 10mm;
     box-sizing: border-box;
     page-break-after: always;
+}
+
+.page.gaylord {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+.page.semid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
 }
 
 .etiqueta {
@@ -61,6 +69,10 @@ body {
     font-size: 18px;
     padding: 8px;
     font-weight: bold;
+}
+
+.page.semid .nome {
+    font-size: 32px;
 }
 
 .qr {
@@ -102,19 +114,19 @@ body {
 // 🔥 SEMID
 function formatarSemid(numero) {
     numero = String(numero).replace("SEMID-", "").trim();
-
-    if (numero.length < 5) {
-        numero = numero.padStart(5, '0');
-    }
-
+    if (numero.length < 5) numero = numero.padStart(5, '0');
     return `semid_sal1_${numero}`;
 }
 
-// 🔥 MODO ZPL (AGORA FUNCIONA PRA TUDO)
+// 🔥 GAYLORD
+function formatarGaylord(numero, comId) {
+    return `G1_SAL1 ${numero} ${comId ? "Com ID" : "Sem ID"}`;
+}
+
+// 🔥 ZPL
 function modoZPL(lista) {
     const url = new URL(window.location.href);
     const zpl = url.searchParams.get("zpl");
-
     if (!zpl) return false;
 
     let resultado = "";
@@ -129,36 +141,28 @@ function modoZPL(lista) {
         } else {
             let [numero, tipo] = item.split("-");
             let comId = tipo === "com";
-            codigo = `G1_SAL${numero} ${comId ? "com ID" : "sem ID"}`;
+            codigo = formatarGaylord(numero, comId);
         }
 
         resultado += `
 ^XA
 ^PW800
 ^LL600
-
 ^CF0,35
-
 ^FO50,30^FDSALVADOS - SAL1^FS
-
 ^FO50,90^A0N,45,45^FD${codigo}^FS
-
 ^FO50,160^BY3
 ^BCN,140,Y,N,N
 ^FD${codigo}^FS
-
 ^FO50,330^A0N,30,30^FDID: ${codigo}^FS
-
 ^FO550,350^BQN,2,5
 ^FDLA,${codigo}^FS
-
 ^XZ
 `;
     });
 
     document.body.innerHTML = `
-        <h2 style="font-family: Arial">Modo Zebra 🏷️</h2>
-        <p>Copie o código abaixo:</p>
+        <h2>Modo Zebra 🏷️</h2>
         <textarea style="width:100%;height:400px;">${resultado}</textarea>
     `;
 
@@ -168,16 +172,13 @@ function modoZPL(lista) {
 // 🔥 PARAMETROS
 function getParametros() {
     const url = new URL(window.location.href);
-
     const dados = url.searchParams.get("dados");
     const inicio = url.searchParams.get("inicio");
     const fim = url.searchParams.get("fim");
 
     let lista = [];
 
-    if (dados) {
-        lista = dados.split(",");
-    }
+    if (dados) lista = dados.split(",");
     else if (inicio && fim) {
         for (let i = parseInt(inicio); i <= parseInt(fim); i++) {
             lista.push("SEMID-" + i);
@@ -194,45 +195,39 @@ function gerar() {
 
     if (modoZPL(lista)) return;
 
-    if (!lista || lista.length === 0) {
-        container.innerHTML = `
-            <div class="sem-dados">
-                <h2>Nenhum dado recebido</h2>
-                <p>Use o AppSheet para gerar etiquetas automaticamente.</p>
-                <br>
-                <small>
-                    Equipe Inventario - Kuehne Nagel SAL1<br>
-                    Cada Pacote Importa!
-                </small>
-            </div>
-        `;
+    if (!lista.length) {
+        container.innerHTML = `<div class="sem-dados">Nenhum dado</div>`;
         return;
     }
 
     let page;
     let count = 0;
+    let tipoAtual = null;
 
     lista.forEach((item, index) => {
 
-        let numero, tipo, comId, texto;
+        let isSemid = item.startsWith("SEMID");
+        let porPagina = isSemid ? 2 : 4;
 
-        if (item.startsWith("SEMID")) {
-
-            numero = item.replace("SEMID-", "");
-            texto = formatarSemid(numero);
-
-        } else {
-
-            [numero, tipo] = item.split("-");
-            comId = tipo === "com";
-
-            texto = `G1_SAL${numero} ${comId ? "com ID" : "sem ID"}`;
+        if (count % porPagina === 0 || tipoAtual !== isSemid) {
+            page = document.createElement("div");
+            page.className = "page " + (isSemid ? "semid" : "gaylord");
+            container.appendChild(page);
+            count = 0;
+            tipoAtual = isSemid;
         }
 
-        if (count % 4 === 0) {
-            page = document.createElement("div");
-            page.className = "page";
-            container.appendChild(page);
+        let texto, titulo;
+
+        if (isSemid) {
+            let numero = item.replace("SEMID-", "");
+            texto = formatarSemid(numero);
+            titulo = "SEM ID";
+        } else {
+            let [numero, tipo] = item.split("-");
+            let comId = tipo === "com";
+            texto = formatarGaylord(numero, comId);
+            titulo = `PACOTES ${comId ? "COM ID" : "SEM ID"}`;
         }
 
         let etiqueta = document.createElement("div");
@@ -243,13 +238,9 @@ function gerar() {
                 <img src="https://luizoliveiraaa.github.io/Etiquetas-Mercadolivre/logomeli.png">
             </div>
 
-            <div class="titulo">
-                ${item.startsWith("SEMID") ? "SEM ID" : `PACOTES ${comId ? "COM ID" : "SEM ID"}`}
-            </div>
+            <div class="titulo">${titulo}</div>
 
-            <div class="nome">
-                ${texto}
-            </div>
+            <div class="nome">${texto}</div>
 
             <div class="qr" id="qr${index}"></div>
 
@@ -264,8 +255,8 @@ function gerar() {
 
         new QRCode(document.getElementById(`qr${index}`), {
             text: texto,
-            width: 180,
-            height: 180
+            width: isSemid ? 220 : 180,
+            height: isSemid ? 220 : 180
         });
 
         count++;
