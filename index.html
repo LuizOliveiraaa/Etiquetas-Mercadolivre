@@ -200,21 +200,19 @@ function gerar() {
         return;
     }
 
+    // 🔥 VERIFICA SE É SEMID (PELA LISTA TODA)
+    let isSemid = lista[0].startsWith("SEMID");
+    let porPagina = isSemid ? 2 : 4;
+
     let page;
     let count = 0;
-    let tipoAtual = null;
 
     lista.forEach((item, index) => {
 
-        let isSemid = item.startsWith("SEMID");
-        let porPagina = isSemid ? 2 : 4;
-
-        if (count % porPagina === 0 || tipoAtual !== isSemid) {
+        if (count % porPagina === 0) {
             page = document.createElement("div");
             page.className = "page " + (isSemid ? "semid" : "gaylord");
             container.appendChild(page);
-            count = 0;
-            tipoAtual = isSemid;
         }
 
         let texto, titulo;
@@ -226,7 +224,7 @@ function gerar() {
         } else {
             let [numero, tipo] = item.split("-");
             let comId = tipo === "com";
-            texto = formatarGaylord(numero, comId);
+            texto = `G1_SAL1 ${numero} ${comId ? "Com ID" : "Sem ID"}`;
             titulo = `PACOTES ${comId ? "COM ID" : "SEM ID"}`;
         }
 
@@ -264,7 +262,6 @@ function gerar() {
 
     setTimeout(() => window.print(), 500);
 }
-
 gerar();
 </script>
 
