@@ -29,50 +29,57 @@ body {
     page-break-after: always;
 }
 
+/* GAYLORD = 4 POR PÁGINA */
 .page.gaylord {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
 }
 
+/* SEMID = 1 POR PÁGINA */
 .page.semid {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr;
 }
 
 .etiqueta {
-    border: 2px solid black;
+    border: 3px solid black;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 
 .topo {
     background: #ffe600;
     text-align: center;
-    padding: 8px;
+    padding: 10px;
 }
 
 .topo img { 
-    height: 55px;
-    max-width: 100%;
+    height: 70px;
 }
 
 .titulo {
     background: #eee;
     text-align: center;
     font-weight: bold;
-    font-size: 14px;
-    padding: 6px;
+    font-size: 16px;
+    padding: 8px;
 }
 
 .nome {
     text-align: center;
-    font-size: 18px;
-    padding: 8px;
+    font-size: 20px;
+    padding: 10px;
     font-weight: bold;
 }
 
+/* SEMID GRANDE */
 .page.semid .nome {
-    font-size: 32px;
+    font-size: 48px;
+}
+
+.page.semid .titulo {
+    font-size: 24px;
 }
 
 .qr {
@@ -80,19 +87,22 @@ body {
     justify-content: center;
     align-items: center;
     flex-grow: 1;
-    padding: 10px;
 }
 
 .footer {
     background: #003a8f;
     text-align: center;
-    padding: 8px;
+    padding: 10px;
     color: white;
     font-size: 12px;
 }
 
+.page.semid .footer {
+    font-size: 16px;
+}
+
 .footer img { 
-    height: 30px; 
+    height: 40px; 
     display: block;
     margin: 0 auto 5px;
 }
@@ -155,7 +165,7 @@ function modoZPL(lista) {
 ^BCN,140,Y,N,N
 ^FD${codigo}^FS
 ^FO50,330^A0N,30,30^FDID: ${codigo}^FS
-^FO550,350^BQN,2,5
+^FO550,350^BQN,2,6
 ^FDLA,${codigo}^FS
 ^XZ
 `;
@@ -200,9 +210,8 @@ function gerar() {
         return;
     }
 
-    // 🔥 VERIFICA SE É SEMID (PELA LISTA TODA)
     let isSemid = lista[0].startsWith("SEMID");
-    let porPagina = isSemid ? 2 : 4;
+    let porPagina = isSemid ? 1 : 4;
 
     let page;
     let count = 0;
@@ -224,7 +233,7 @@ function gerar() {
         } else {
             let [numero, tipo] = item.split("-");
             let comId = tipo === "com";
-            texto = `G1_SAL1 ${numero} ${comId ? "Com ID" : "Sem ID"}`;
+            texto = formatarGaylord(numero, comId);
             titulo = `PACOTES ${comId ? "COM ID" : "SEM ID"}`;
         }
 
@@ -253,8 +262,8 @@ function gerar() {
 
         new QRCode(document.getElementById(`qr${index}`), {
             text: texto,
-            width: isSemid ? 220 : 180,
-            height: isSemid ? 220 : 180
+            width: isSemid ? 350 : 180,
+            height: isSemid ? 350 : 180
         });
 
         count++;
@@ -262,6 +271,7 @@ function gerar() {
 
     setTimeout(() => window.print(), 500);
 }
+
 gerar();
 </script>
 
