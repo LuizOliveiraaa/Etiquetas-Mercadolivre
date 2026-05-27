@@ -61,13 +61,14 @@ body {
     border-bottom: 2px solid black;
 }
 
-/* NOME */
+/* TEXTO PRINCIPAL */
 .nome {
     text-align: center;
-    font-size: 42px;
-    padding: 20px;
+    font-size: 34px;
+    padding: 18px;
     font-weight: bold;
     word-break: break-word;
+    line-height: 1.2;
 }
 
 /* QR */
@@ -111,7 +112,10 @@ body {
 
 // 🔥 SEMID
 function formatarSemid(numero) {
-    numero = String(numero).replace("SEMID-", "").trim();
+
+    numero = String(numero)
+        .replace("SEMID-", "")
+        .trim();
 
     if (numero.length < 5) {
         numero = numero.padStart(5, '0');
@@ -122,6 +126,7 @@ function formatarSemid(numero) {
 
 // 🔥 GAYLORD
 function formatarGaylord(numero, comId) {
+
     return `G1_SAL1 ${numero} ${comId ? "Com ID" : "Sem ID"}`;
 }
 
@@ -129,6 +134,7 @@ function formatarGaylord(numero, comId) {
 function modoZPL(lista) {
 
     const url = new URL(window.location.href);
+
     const zpl = url.searchParams.get("zpl");
 
     if (!zpl) return false;
@@ -139,14 +145,20 @@ function modoZPL(lista) {
 
         let codigo;
 
+        // 🔥 SEMID
         if (item.startsWith("SEMID")) {
 
             let numero = item.replace("SEMID-", "");
+
             codigo = formatarSemid(numero);
 
-        } else {
+        } 
+        
+        // 🔥 GAYLORD
+        else {
 
             let [numero, tipo] = item.split("-");
+
             let comId = tipo === "com";
 
             codigo = formatarGaylord(numero, comId);
@@ -175,7 +187,9 @@ function modoZPL(lista) {
     });
 
     document.body.innerHTML = `
-        <h2 style="font-family: Arial">Modo Zebra 🏷️</h2>
+        <h2 style="font-family: Arial">
+            Modo Zebra 🏷️
+        </h2>
 
         <textarea style="
             width:100%;
@@ -194,22 +208,25 @@ function getParametros() {
     const url = new URL(window.location.href);
 
     const dados = url.searchParams.get("dados");
+
     const inicio = url.searchParams.get("inicio");
+
     const fim = url.searchParams.get("fim");
 
     let lista = [];
 
-    // GAYLORD
+    // 🔥 GAYLORD
     if (dados) {
 
         lista = dados.split(",");
 
     } 
     
-    // SEMID
+    // 🔥 SEMID
     else if (inicio && fim) {
 
         for (let i = parseInt(inicio); i <= parseInt(fim); i++) {
+
             lista.push("SEMID-" + i);
         }
     }
@@ -224,7 +241,7 @@ function gerar() {
 
     let container = document.getElementById("paginas");
 
-    // 🔥 ZPL
+    // 🔥 MODO ZPL
     if (modoZPL(lista)) return;
 
     // 🔥 SEM DADOS
@@ -239,18 +256,17 @@ function gerar() {
         return;
     }
 
-    let page;
-
+    // 🔥 UMA ETIQUETA POR FOLHA
     lista.forEach((item, index) => {
 
-        // 🔥 NOVA PÁGINA PRA CADA ETIQUETA
-        page = document.createElement("div");
+        let page = document.createElement("div");
 
         page.className = "page";
 
         container.appendChild(page);
 
-        let texto, titulo;
+        let texto;
+        let titulo;
 
         // 🔥 SEMID
         if (item.startsWith("SEMID")) {
@@ -275,7 +291,6 @@ function gerar() {
             titulo = `PACOTES ${comId ? "COM ID" : "SEM ID"}`;
         }
 
-        // 🔥 ETIQUETA
         let etiqueta = document.createElement("div");
 
         etiqueta.className = "etiqueta";
@@ -305,7 +320,7 @@ function gerar() {
 
         page.appendChild(etiqueta);
 
-        // 🔥 QR GIGANTE
+        //  QR GIGANTE
         new QRCode(document.getElementById(`qr${index}`), {
 
             text: texto,
@@ -315,7 +330,7 @@ function gerar() {
         });
     });
 
-    // 🔥 IMPRIMIR
+    //  IMPRIMIR
     setTimeout(() => window.print(), 500);
 }
 
